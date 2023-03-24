@@ -22,9 +22,8 @@ class Weeklupdate:
     file_names = os.listdir("../data/weekly_updates")
     for file_name in file_names:
       loader = UnstructuredHTMLLoader("../data/weekly_updates/" + file_name)
-      document = loader.load()[0]
-      print(file_name)
-      document.metadata["date"] = file_name[0:10]
+      document = loader.load()
+      document[0].metadata["date"] = file_name[0:10]
       documents += document
     return documents
   
@@ -35,7 +34,7 @@ class Weeklupdate:
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
     texts = text_splitter.split_documents(self.documents)
     docsearch = Chroma.from_documents(texts, embeddings, collection_name="weeklyupdatesv2", persist_directory=persist_directory)
-    weekly_updates = VectorDBQAWithSourcesChain.from_chain_type(llm=self.llm, chain_type="map_reduce", vectorstore=docsearch)
+    weekly_updates = VectorDBQAWithSourcesChain.from_chain_type(llm=self.llm, chain_type="map_reduce", vectorstore=docsearch, search_kwargs={"date": {"$gt": "2018-1-1"}})
     return weekly_updates
 
   def create_agent(self):
